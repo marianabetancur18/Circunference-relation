@@ -1,0 +1,1582 @@
+Microsoft (R) Macro Assembler Version 14.29.30133.0	    08/26/21 12:38:40
+Proyecti        (Proyecto.asm				     Page 1 - 1
+
+
+				TITLE Proyecti        (Proyecto.asm)
+
+
+				INCLUDE Irvine32.inc
+			      C ; Include file for Irvine32.lib             (Irvine32.inc)
+			      C 
+			      C ;OPTION CASEMAP:NONE		; optional: make identifiers case-sensitive
+			      C 
+			      C INCLUDE SmallWin.inc		; MS-Windows prototypes, structures, and constants
+			      C .NOLIST
+			      C .LIST
+			      C 
+			      C INCLUDE VirtualKeys.inc
+			      C ; VirtualKeys.inc
+			      C .NOLIST
+			      C .LIST
+			      C 
+			      C 
+			      C .NOLIST
+			      C .LIST
+			      C 
+				INCLUDE macros.inc
+			      C .NOLIST
+			      C .LIST
+			      C 
+
+ 00000000			.data
+ 00000000				X1 REAL8 ?
+	   0000000000000000
+ 00000008				Y1 REAL8 ?
+	   0000000000000000
+ 00000010				R1 REAL8 ?
+	   0000000000000000
+ 00000018				X2 REAL8 ?
+	   0000000000000000
+ 00000020				Y2 REAL8 ?
+	   0000000000000000
+ 00000028				R2 REAL8 ?
+	   0000000000000000
+
+
+ 00000030				DeltaX REAL8 ?										;Variable que guarda el cuadrado de la diferencia de las coordenadas X de los centro
+	   0000000000000000
+ 00000038				DEltaY REAL8 ?										;Variable que guarda el cuadrado de la diferencia de las coordenadas Y de los centro
+	   0000000000000000
+ 00000040				DistC REAL8 ?										;Variable que guarda la distancia entre centros
+	   0000000000000000
+ 00000048				TX	REAL8 ?											;Variable que guarda el valor de la coordenada X del punto tangente
+	   0000000000000000
+ 00000050				TY	REAL8 ?											;Variable que guarda el valor de la coordenada Y del punto tangente
+	   0000000000000000
+ 00000058				Aux REAL8 0.0										;Variable que guarda operciones en el momento de calcular los puntos interseccion
+	   0000000000000000
+ 00000060				TX1	REAL8 ?											;Variable que guarda el valor de la coordenada X del otro punto si la relacion fue clasificada como secante
+	   0000000000000000
+ 00000068				TY1	REAL8 ?											;Variable que guarda el valor de la coordenada Y del otro punto si la relacion fue clasificada como secante
+	   0000000000000000
+
+ 00000070				MOne REAL8 -1.0										;Variable referente al valor -1 de ensamblador
+	   BFF0000000000000
+ 00000078				Zero REAL8  0.0										;Variable referente al valor 0 de ensamblador
+	   0000000000000000
+ 00000080				One REAL8 1.0										;Variable referente al valor 1 de ensamblador
+	   3FF0000000000000
+ 00000088				Two REAL8 2.0										;Variable referente al valor 2 de ensamblador
+	   4000000000000000
+
+ 00000090				Bool REAL8 ?										;Variable para retornar al inicio si se desea volver a ejecutar el codigo
+	   0000000000000000
+
+ 00000000			.code
+ 00000000			main PROC
+ 00000000  9B DB E3			FINIT
+					
+					MWRITE "Bienvenido a la practica 1 de la asignatura Arquitectura de Computadores 2021-I, los integrantes del equipo son Mariana Betancur, Felipe Merino y Mateo Rincon"
+ 00000098		     1		.data		
+ 00000098 42 69 65 6E 76     1		??0000 BYTE "Bienvenido a la practica 1 de la asignatura Arquitectura de Computadores 2021-I, los integrantes del equipo son Mariana Betancur, Felipe Merino y Mateo Rincon",0	
+	   65 6E 69 64 6F
+	   20 61 20 6C 61
+	   20 70 72 61 63
+	   74 69 63 61 20
+	   31 20 64 65 20
+	   6C 61 20 61 73
+	   69 67 6E 61 74
+	   75 72 61 20 41
+	   72 71 75 69 74
+	   65 63 74 75 72
+	   61 20 64 65 20
+	   43 6F 6D 70 75
+	   74 61 64 6F 72
+	   65 73 20 32 30
+	   32 31 2D 49 2C
+	   20 6C 6F 73 20
+	   69 6E 74 65 67
+	   72 61 6E 74 65
+	   73 20 64 65 6C
+	   20 65 71 75 69
+	   70 6F 20 73 6F
+	   6E 20 4D 61 72
+	   69 61 6E 61 20
+	   42 65 74 61 6E
+	   63 75 72 2C 20
+	   46 65 6C 69 70
+	   65 20 4D 65 72
+	   69 6E 6F 20 79
+	   20 4D 61 74 65
+	   6F 20 52 69 6E
+	   63 6F 6E 00
+ 00000003		     1		.code
+ 00000003  52		     1		push	edx
+ 00000004  BA 00000098 R     1		mov	edx,OFFSET ??0000
+ 00000009  E8 00000000 E     1		call	WriteString
+ 0000000E  5A		     1		pop	edx
+ 0000000F  E8 00000000 E		CALL CRLF
+					MWRITE "La funcion principal del programa es clasificar la relacion que tienen dos circunferencias en exteriores, tangentes exteriormente, secantes, tangentes interiormente, " 
+ 00000137		     1		.data		
+ 00000137 4C 61 20 66 75     1		??0001 BYTE "La funcion principal del programa es clasificar la relacion que tienen dos circunferencias en exteriores, tangentes exteriormente, secantes, tangentes interiormente, ",0	
+	   6E 63 69 6F 6E
+	   20 70 72 69 6E
+	   63 69 70 61 6C
+	   20 64 65 6C 20
+	   70 72 6F 67 72
+	   61 6D 61 20 65
+	   73 20 63 6C 61
+	   73 69 66 69 63
+	   61 72 20 6C 61
+	   20 72 65 6C 61
+	   63 69 6F 6E 20
+	   71 75 65 20 74
+	   69 65 6E 65 6E
+	   20 64 6F 73 20
+	   63 69 72 63 75
+	   6E 66 65 72 65
+	   6E 63 69 61 73
+	   20 65 6E 20 65
+	   78 74 65 72 69
+	   6F 72 65 73 2C
+	   20 74 61 6E 67
+	   65 6E 74 65 73
+	   20 65 78 74 65
+	   72 69 6F 72 6D
+	   65 6E 74 65 2C
+	   20 73 65 63 61
+	   6E 74 65 73 2C
+	   20 74 61 6E 67
+	   65 6E 74 65 73
+	   20 69 6E 74 65
+	   72 69 6F 72 6D
+	   65 6E 74 65 2C
+	   20 00
+ 00000014		     1		.code
+ 00000014  52		     1		push	edx
+ 00000015  BA 00000137 R     1		mov	edx,OFFSET ??0001
+ 0000001A  E8 00000000 E     1		call	WriteString
+ 0000001F  5A		     1		pop	edx
+					MWRITE "interiores excentricas, interiores concentricas y coincidentes, dadas las coordenadas (X,Y) del centro de cada circunferencia y su respectivo radio. Ademas, si "
+ 000001DE		     1		.data		
+ 000001DE 69 6E 74 65 72     1		??0002 BYTE "interiores excentricas, interiores concentricas y coincidentes, dadas las coordenadas (X,Y) del centro de cada circunferencia y su respectivo radio. Ademas, si ",0	
+	   69 6F 72 65 73
+	   20 65 78 63 65
+	   6E 74 72 69 63
+	   61 73 2C 20 69
+	   6E 74 65 72 69
+	   6F 72 65 73 20
+	   63 6F 6E 63 65
+	   6E 74 72 69 63
+	   61 73 20 79 20
+	   63 6F 69 6E 63
+	   69 64 65 6E 74
+	   65 73 2C 20 64
+	   61 64 61 73 20
+	   6C 61 73 20 63
+	   6F 6F 72 64 65
+	   6E 61 64 61 73
+	   20 28 58 2C 59
+	   29 20 64 65 6C
+	   20 63 65 6E 74
+	   72 6F 20 64 65
+	   20 63 61 64 61
+	   20 63 69 72 63
+	   75 6E 66 65 72
+	   65 6E 63 69 61
+	   20 79 20 73 75
+	   20 72 65 73 70
+	   65 63 74 69 76
+	   6F 20 72 61 64
+	   69 6F 2E 20 41
+	   64 65 6D 61 73
+	   2C 20 73 69 20
+	   00
+ 00000020		     1		.code
+ 00000020  52		     1		push	edx
+ 00000021  BA 000001DE R     1		mov	edx,OFFSET ??0002
+ 00000026  E8 00000000 E     1		call	WriteString
+ 0000002B  5A		     1		pop	edx
+					MWRITE "la relación encontrada entre las circunferencias presenta puntos de interseccion, el algoritmo imprimira las coordenadas de estos."
+ 0000027F		     1		.data		
+ 0000027F 6C 61 20 72 65     1		??0003 BYTE "la relación encontrada entre las circunferencias presenta puntos de interseccion, el algoritmo imprimira las coordenadas de estos.",0	
+	   6C 61 63 69 F3
+	   6E 20 65 6E 63
+	   6F 6E 74 72 61
+	   64 61 20 65 6E
+	   74 72 65 20 6C
+	   61 73 20 63 69
+	   72 63 75 6E 66
+	   65 72 65 6E 63
+	   69 61 73 20 70
+	   72 65 73 65 6E
+	   74 61 20 70 75
+	   6E 74 6F 73 20
+	   64 65 20 69 6E
+	   74 65 72 73 65
+	   63 63 69 6F 6E
+	   2C 20 65 6C 20
+	   61 6C 67 6F 72
+	   69 74 6D 6F 20
+	   69 6D 70 72 69
+	   6D 69 72 61 20
+	   6C 61 73 20 63
+	   6F 6F 72 64 65
+	   6E 61 64 61 73
+	   20 64 65 20 65
+	   73 74 6F 73 2E
+	   00
+ 0000002C		     1		.code
+ 0000002C  52		     1		push	edx
+ 0000002D  BA 0000027F R     1		mov	edx,OFFSET ??0003
+ 00000032  E8 00000000 E     1		call	WriteString
+ 00000037  5A		     1		pop	edx
+ 00000038  E8 00000000 E		CALL CRLF
+ 0000003D  E8 00000000 E		CALL CRLF
+
+
+ 00000042			inicio:
+
+					MWRITE "Por favor, ingrese los siguientes datos sobre las circunferencias." 
+ 00000302		     1		.data		
+ 00000302 50 6F 72 20 66     1		??0004 BYTE "Por favor, ingrese los siguientes datos sobre las circunferencias.",0	
+	   61 76 6F 72 2C
+	   20 69 6E 67 72
+	   65 73 65 20 6C
+	   6F 73 20 73 69
+	   67 75 69 65 6E
+	   74 65 73 20 64
+	   61 74 6F 73 20
+	   73 6F 62 72 65
+	   20 6C 61 73 20
+	   63 69 72 63 75
+	   6E 66 65 72 65
+	   6E 63 69 61 73
+	   2E 00
+ 00000042		     1		.code
+ 00000042  52		     1		push	edx
+ 00000043  BA 00000302 R     1		mov	edx,OFFSET ??0004
+ 00000048  E8 00000000 E     1		call	WriteString
+ 0000004D  5A		     1		pop	edx
+ 0000004E  E8 00000000 E		CALL CRLF
+ 00000053  E8 00000000 E		CALL CRLF
+					MWRITE "La coordenada X del centro del primer circulo es:"
+ 00000345		     1		.data		
+ 00000345 4C 61 20 63 6F     1		??0005 BYTE "La coordenada X del centro del primer circulo es:",0	
+	   6F 72 64 65 6E
+	   61 64 61 20 58
+	   20 64 65 6C 20
+	   63 65 6E 74 72
+	   6F 20 64 65 6C
+	   20 70 72 69 6D
+	   65 72 20 63 69
+	   72 63 75 6C 6F
+	   20 65 73 3A 00
+ 00000058		     1		.code
+ 00000058  52		     1		push	edx
+ 00000059  BA 00000345 R     1		mov	edx,OFFSET ??0005
+ 0000005E  E8 00000000 E     1		call	WriteString
+ 00000063  5A		     1		pop	edx
+ 00000064  E8 00000000 E		CALL READFLOAT
+ 00000069  DD 1D 00000000 R		FSTP X1
+					
+					MWRITE "La coordenada Y del centro del primer circulo es:"
+ 00000377		     1		.data		
+ 00000377 4C 61 20 63 6F     1		??0006 BYTE "La coordenada Y del centro del primer circulo es:",0	
+	   6F 72 64 65 6E
+	   61 64 61 20 59
+	   20 64 65 6C 20
+	   63 65 6E 74 72
+	   6F 20 64 65 6C
+	   20 70 72 69 6D
+	   65 72 20 63 69
+	   72 63 75 6C 6F
+	   20 65 73 3A 00
+ 0000006F		     1		.code
+ 0000006F  52		     1		push	edx
+ 00000070  BA 00000377 R     1		mov	edx,OFFSET ??0006
+ 00000075  E8 00000000 E     1		call	WriteString
+ 0000007A  5A		     1		pop	edx
+ 0000007B  E8 00000000 E		CALL READFLOAT
+ 00000080  DD 1D 00000008 R		FSTP Y1
+
+					MWRITE "El radio del primer circulo es:"
+ 000003A9		     1		.data		
+ 000003A9 45 6C 20 72 61     1		??0007 BYTE "El radio del primer circulo es:",0	
+	   64 69 6F 20 64
+	   65 6C 20 70 72
+	   69 6D 65 72 20
+	   63 69 72 63 75
+	   6C 6F 20 65 73
+	   3A 00
+ 00000086		     1		.code
+ 00000086  52		     1		push	edx
+ 00000087  BA 000003A9 R     1		mov	edx,OFFSET ??0007
+ 0000008C  E8 00000000 E     1		call	WriteString
+ 00000091  5A		     1		pop	edx
+ 00000092  E8 00000000 E		CALL READFLOAT
+ 00000097  DD 1D 00000010 R		FSTP R1
+					
+					MWRITE "La coordenada X del centro del segundo circulo es:"
+ 000003C9		     1		.data		
+ 000003C9 4C 61 20 63 6F     1		??0008 BYTE "La coordenada X del centro del segundo circulo es:",0	
+	   6F 72 64 65 6E
+	   61 64 61 20 58
+	   20 64 65 6C 20
+	   63 65 6E 74 72
+	   6F 20 64 65 6C
+	   20 73 65 67 75
+	   6E 64 6F 20 63
+	   69 72 63 75 6C
+	   6F 20 65 73 3A
+	   00
+ 0000009D		     1		.code
+ 0000009D  52		     1		push	edx
+ 0000009E  BA 000003C9 R     1		mov	edx,OFFSET ??0008
+ 000000A3  E8 00000000 E     1		call	WriteString
+ 000000A8  5A		     1		pop	edx
+ 000000A9  E8 00000000 E		CALL READFLOAT
+ 000000AE  DD 1D 00000018 R		FSTP X2
+					
+					MWRITE "La coordenada Y del centro del segundo circulo es:"
+ 000003FC		     1		.data		
+ 000003FC 4C 61 20 63 6F     1		??0009 BYTE "La coordenada Y del centro del segundo circulo es:",0	
+	   6F 72 64 65 6E
+	   61 64 61 20 59
+	   20 64 65 6C 20
+	   63 65 6E 74 72
+	   6F 20 64 65 6C
+	   20 73 65 67 75
+	   6E 64 6F 20 63
+	   69 72 63 75 6C
+	   6F 20 65 73 3A
+	   00
+ 000000B4		     1		.code
+ 000000B4  52		     1		push	edx
+ 000000B5  BA 000003FC R     1		mov	edx,OFFSET ??0009
+ 000000BA  E8 00000000 E     1		call	WriteString
+ 000000BF  5A		     1		pop	edx
+ 000000C0  E8 00000000 E		CALL READFLOAT
+ 000000C5  DD 1D 00000020 R		FSTP Y2
+					
+					MWRITE "El radio del segundo circulo es:"
+ 0000042F		     1		.data		
+ 0000042F 45 6C 20 72 61     1		??000A BYTE "El radio del segundo circulo es:",0	
+	   64 69 6F 20 64
+	   65 6C 20 73 65
+	   67 75 6E 64 6F
+	   20 63 69 72 63
+	   75 6C 6F 20 65
+	   73 3A 00
+ 000000CB		     1		.code
+ 000000CB  52		     1		push	edx
+ 000000CC  BA 0000042F R     1		mov	edx,OFFSET ??000A
+ 000000D1  E8 00000000 E     1		call	WriteString
+ 000000D6  5A		     1		pop	edx
+ 000000D7  E8 00000000 E		CALL READFLOAT
+ 000000DC  DD 1D 00000028 R		FSTP R2
+					
+ 000000E2  E8 00000000 E		CALL CRLF
+
+
+ 000000E7  9B DB E3			FINIT                                               ;Inicia el algoritmo, ya se tienen los datos necesarios para realizar los calculos necesarios.
+																		
+ 000000EA  DD 05 00000000 R		FLD X1												; Calculamos la distancia entre los radios  distC = (deltaX + deltaY)^(1/2), deltaX = (x1-x2)^2, deltaY = (y1-y2)^2
+ 000000F0  DC 25 00000018 R		FSUB X2
+ 000000F6  DD 1D 00000030 R		FSTP DeltaX
+ 000000FC  DD 05 00000030 R		FLD DeltaX
+ 00000102  DC 0D 00000030 R		FMUL DeltaX
+ 00000108  DD 1D 00000030 R		FSTP DeltaX
+
+ 0000010E  DD 05 00000008 R		FLD Y1
+ 00000114  DC 25 00000020 R		FSUB Y2
+ 0000011A  DD 1D 00000038 R		FSTP DeltaY
+ 00000120  DD 05 00000038 R		FLD DeltaY
+ 00000126  DC 0D 00000038 R		FMUL DeltaY
+ 0000012C  DD 1D 00000038 R		FSTP DeltaY
+
+ 00000132  DD 05 00000030 R		FLD DeltaX
+ 00000138  DC 05 00000038 R		FADD DeltaY
+ 0000013E  D9 FA			FSQRT
+ 00000140  DD 1D 00000040 R		FSTP DistC
+
+ 00000146  EB 00			JMP criterio1										
+
+ 00000148			criterio1:												;Criterio 1, nos servira para poder clasificar en 2 grandes grupos las relaciones dada la distancia entre los centros de las circunferencias.
+																		
+ 00000148  DD 05 00000078 R		FLD Zero
+ 0000014E  DD 05 00000040 R		FLD distC
+ 00000154  DF F1			FCOMIP ST(0), ST(1)									;Si la distancia entre centros no es 0, pasamos al siguiente criterio de clasificacion.
+ 00000156  75 3E				JNE criterio2
+
+ 00000158  DD 05 00000010 R		FLD r1
+ 0000015E  DD 05 00000028 R		FLD r2
+ 00000164  DF F1			FCOMIP ST(0), ST(1)									;Si la distancia entre centros es 0 y los radios son diferentes, entonces la relacion de clasificacion es: concentricas.
+ 00000166  75 18				JNE concentricas
+					
+ 00000168  EB 00			JMP coincidentes									;Si la distancia entre centros es 0 y los radios son iguales, entonces la relacion de clasificacion es: coincidentes.
+
+
+
+
+ 0000016A			coincidentes:											;La relacion al ser clasificada como coincidente, imprimira el resultado y luego saltara al final del programa
+
+					MWRITE "El resultado de la clasificacion de la relacion entre las circuenferencias es que estas son coincidentes"							
+ 00000450		     1		.data		
+ 00000450 45 6C 20 72 65     1		??000B BYTE "El resultado de la clasificacion de la relacion entre las circuenferencias es que estas son coincidentes",0	
+	   73 75 6C 74 61
+	   64 6F 20 64 65
+	   20 6C 61 20 63
+	   6C 61 73 69 66
+	   69 63 61 63 69
+	   6F 6E 20 64 65
+	   20 6C 61 20 72
+	   65 6C 61 63 69
+	   6F 6E 20 65 6E
+	   74 72 65 20 6C
+	   61 73 20 63 69
+	   72 63 75 65 6E
+	   66 65 72 65 6E
+	   63 69 61 73 20
+	   65 73 20 71 75
+	   65 20 65 73 74
+	   61 73 20 73 6F
+	   6E 20 63 6F 69
+	   6E 63 69 64 65
+	   6E 74 65 73 00
+ 0000016A		     1		.code
+ 0000016A  52		     1		push	edx
+ 0000016B  BA 00000450 R     1		mov	edx,OFFSET ??000B
+ 00000170  E8 00000000 E     1		call	WriteString
+ 00000175  5A		     1		pop	edx
+ 00000176  E8 00000000 E		CALL CRLF
+ 0000017B  E9 00000511			JMP final
+
+ 00000180			concentricas:											;La relacion al ser clasificada como concentrica, imprimira el resultado y luego saltara al final del programa
+
+					MWRITE "El resultado de la clasificacion de la relacion entre las circuenferencias es que estas son concentricas"							
+ 000004B9		     1		.data		
+ 000004B9 45 6C 20 72 65     1		??000C BYTE "El resultado de la clasificacion de la relacion entre las circuenferencias es que estas son concentricas",0	
+	   73 75 6C 74 61
+	   64 6F 20 64 65
+	   20 6C 61 20 63
+	   6C 61 73 69 66
+	   69 63 61 63 69
+	   6F 6E 20 64 65
+	   20 6C 61 20 72
+	   65 6C 61 63 69
+	   6F 6E 20 65 6E
+	   74 72 65 20 6C
+	   61 73 20 63 69
+	   72 63 75 65 6E
+	   66 65 72 65 6E
+	   63 69 61 73 20
+	   65 73 20 71 75
+	   65 20 65 73 74
+	   61 73 20 73 6F
+	   6E 20 63 6F 6E
+	   63 65 6E 74 72
+	   69 63 61 73 00
+ 00000180		     1		.code
+ 00000180  52		     1		push	edx
+ 00000181  BA 000004B9 R     1		mov	edx,OFFSET ??000C
+ 00000186  E8 00000000 E     1		call	WriteString
+ 0000018B  5A		     1		pop	edx
+ 0000018C  E8 00000000 E		CALL CRLF				
+ 00000191  E9 000004FB			JMP final
+
+ 00000196			criterio2:												;Sabiendo que los centros de las circunferencias estan en diferentes coordenadas
+					
+ 00000196  DD 05 00000040 R		FLD distC
+ 0000019C  DD 05 00000010 R		FLD r1
+ 000001A2  DC 25 00000028 R		FSUB r2
+ 000001A8  D9 E1			FABS
+ 000001AA  DF F1			FCOMIP ST(0), ST(1)									;Se verifica si la distancia entre los centros es igual en magnitud a la diferencia entre los radios, en caso tal, estas serian clasificadas como tangentes interiormente.
+ 000001AC  74 55				JE tanInteriores								;JE tanInteriores
+
+ 000001AE  DD 05 00000040 R		FLD distC
+ 000001B4  DD 05 00000010 R		FLD r1
+ 000001BA  DC 05 00000028 R		FADD r2
+ 000001C0  DF F1			FCOMIP ST(0), ST(1)									;Se verifica si la distancia entre los centros es igual a la suma de los radios, en caso tal, estas serian clasificadas como tangentes exteriormente.
+ 000001C2  0F 84 0000014A			JE tanExteriores
+
+ 000001C8  DD 05 00000040 R		FLD distC
+ 000001CE  DD 05 00000010 R		FLD r1
+ 000001D4  DC 25 00000028 R		FSUB r2
+ 000001DA  D9 E1			FABS
+ 000001DC  DF F1			FCOMIP ST(0), ST(1)									;Se verifica si la distancia entre los centros es menor en magnitud a la diferencia entre los radios, en caso tal, estas serian clasificadas como interiores excentricas.
+ 000001DE  0F 87 0000023D			JA excentricas									;JA excentricas
+
+ 000001E4  DD 05 00000040 R		FLD distC
+ 000001EA  DD 05 00000010 R		FLD r1
+ 000001F0  DC 05 00000028 R		FADD r2
+ 000001F6  DF F1			FCOMIP ST(0), ST(1)									;Se verifica si la distancia entre los centros es menor a la suma de los radios, en caso tal, estas serian clasificadas como secantes.
+ 000001F8  0F 87 00000239			JA secantes
+
+ 000001FE  E9 00000480			JMP exteriores
+
+
+ 00000203			tanInteriores:											;La relacion al ser clasificada como tangentes interiormente, calculara el punto de tangencia, imprimira el resultado y luego saltara al final del programa
+					
+ 00000203  DD 05 00000000 R		FLD X1												;Calcular la coordenada X del punto de tangencia
+ 00000209  DC 05 00000018 R		FADD X2												;TX = (X1 + X2)/2
+ 0000020F  DC 35 00000088 R		FDIV Two
+ 00000215  DD 1D 00000048 R		FSTP TX
+
+ 0000021B  DD 05 00000028 R		FLD R2												;TX = TX + (X2-X1)*(R1^2-R2^2)/(2*DistC^2)
+ 00000221  DC 0D 00000028 R		FMUL R2
+ 00000227  DD 05 00000010 R		FLD R1
+ 0000022D  DC 0D 00000010 R		FMUL R1
+ 00000233  D8 E1			FSUB ST(0), ST(1)
+ 00000235  DC 35 00000088 R		FDIV Two
+ 0000023B  DC 35 00000040 R		FDIV DistC
+ 00000241  DC 35 00000040 R		FDIV DistC
+ 00000247  DD 05 00000018 R		FLD X2
+ 0000024D  DC 25 00000000 R		FSUB X1
+ 00000253  D8 C9			FMUL ST(0), ST(1)
+ 00000255  DC 05 00000048 R		FADD TX
+ 0000025B  DD 1D 00000048 R		FSTP TX
+
+
+ 00000261  DD 05 00000008 R		FLD Y1												;Calcular la coordenada Y del punto de tangencia
+ 00000267  DC 05 00000020 R		FADD Y2												;TY = (Y1 + Y2)/2
+ 0000026D  DC 35 00000088 R		FDIV Two
+ 00000273  DD 1D 00000050 R		FSTP TY
+
+ 00000279  DD 05 00000028 R		FLD R2												;TY = TY + (Y2-Y1)*(R1^2-R2^2)/(2*DistC^2)
+ 0000027F  DC 0D 00000028 R		FMUL R2
+ 00000285  DD 05 00000010 R		FLD R1
+ 0000028B  DC 0D 00000010 R		FMUL R1
+ 00000291  D8 E1			FSUB ST(0), ST(1)
+ 00000293  DC 35 00000088 R		FDIV Two
+ 00000299  DC 35 00000040 R		FDIV DistC
+ 0000029F  DC 35 00000040 R		FDIV DistC
+ 000002A5  DD 05 00000020 R		FLD Y2
+ 000002AB  DC 25 00000008 R		FSUB Y1
+ 000002B1  D8 C9			FMUL ST(0), ST(1)
+ 000002B3  DC 05 00000050 R		FADD TY
+ 000002B9  DD 1D 00000050 R		FSTP TY
+
+					MWRITE "El resultado de la clasificacion de la relacion entre las circuenferencias es que estas son tangentes interiormente y su punto de interseccion es:"
+ 00000522		     1		.data		
+ 00000522 45 6C 20 72 65     1		??000D BYTE "El resultado de la clasificacion de la relacion entre las circuenferencias es que estas son tangentes interiormente y su punto de interseccion es:",0	
+	   73 75 6C 74 61
+	   64 6F 20 64 65
+	   20 6C 61 20 63
+	   6C 61 73 69 66
+	   69 63 61 63 69
+	   6F 6E 20 64 65
+	   20 6C 61 20 72
+	   65 6C 61 63 69
+	   6F 6E 20 65 6E
+	   74 72 65 20 6C
+	   61 73 20 63 69
+	   72 63 75 65 6E
+	   66 65 72 65 6E
+	   63 69 61 73 20
+	   65 73 20 71 75
+	   65 20 65 73 74
+	   61 73 20 73 6F
+	   6E 20 74 61 6E
+	   67 65 6E 74 65
+	   73 20 69 6E 74
+	   65 72 69 6F 72
+	   6D 65 6E 74 65
+	   20 79 20 73 75
+	   20 70 75 6E 74
+	   6F 20 64 65 20
+	   69 6E 74 65 72
+	   73 65 63 63 69
+	   6F 6E 20 65 73
+	   3A 00
+ 000002BF		     1		.code
+ 000002BF  52		     1		push	edx
+ 000002C0  BA 00000522 R     1		mov	edx,OFFSET ??000D
+ 000002C5  E8 00000000 E     1		call	WriteString
+ 000002CA  5A		     1		pop	edx
+					MWRITE "( "
+ 000005B5		     1		.data		
+ 000005B5 28 20 00	     1		??000E BYTE "( ",0	
+ 000002CB		     1		.code
+ 000002CB  52		     1		push	edx
+ 000002CC  BA 000005B5 R     1		mov	edx,OFFSET ??000E
+ 000002D1  E8 00000000 E     1		call	WriteString
+ 000002D6  5A		     1		pop	edx
+ 000002D7  DD 05 00000048 R		FLD TX
+ 000002DD  E8 00000000 E		CALL WRITEFLOAT
+ 000002E2  9B DB E3			FINIT
+					MWRITE " , "
+ 000005B8		     1		.data		
+ 000005B8 20 2C 20 00	     1		??000F BYTE " , ",0	
+ 000002E5		     1		.code
+ 000002E5  52		     1		push	edx
+ 000002E6  BA 000005B8 R     1		mov	edx,OFFSET ??000F
+ 000002EB  E8 00000000 E     1		call	WriteString
+ 000002F0  5A		     1		pop	edx
+ 000002F1  DD 05 00000050 R		FLD TY
+ 000002F7  E8 00000000 E		CALL WRITEFLOAT
+					MWRITE " )"
+ 000005BC		     1		.data		
+ 000005BC 20 29 00	     1		??0010 BYTE " )",0	
+ 000002FC		     1		.code
+ 000002FC  52		     1		push	edx
+ 000002FD  BA 000005BC R     1		mov	edx,OFFSET ??0010
+ 00000302  E8 00000000 E     1		call	WriteString
+ 00000307  5A		     1		pop	edx
+ 00000308  E8 00000000 E		CALL CRLF
+ 0000030D  E9 0000037F			JMP final
+
+
+
+ 00000312			tanExteriores:											;La relacion al ser clasificada como tangentes exteriormente, calculara el punto de tangencia, imprimira el resultado y luego saltara al final del programa
+
+ 00000312  DD 05 00000000 R		FLD X1												;Calcular la coordenada X del punto de tangencia
+ 00000318  DC 05 00000018 R		FADD X2												;TX = (X1 + X2)/2
+ 0000031E  DC 35 00000088 R		FDIV Two
+ 00000324  DD 1D 00000048 R		FSTP TX
+
+ 0000032A  DD 05 00000028 R		FLD R2												;TX = TX + (X2-X1)*(R1^2-R2^2)/(2*DistC^2)
+ 00000330  DC 0D 00000028 R		FMUL R2
+ 00000336  DD 05 00000010 R		FLD R1
+ 0000033C  DC 0D 00000010 R		FMUL R1
+ 00000342  D8 E1			FSUB ST(0), ST(1)
+ 00000344  DC 35 00000088 R		FDIV Two
+ 0000034A  DC 35 00000040 R		FDIV DistC
+ 00000350  DC 35 00000040 R		FDIV DistC
+ 00000356  DD 05 00000018 R		FLD X2
+ 0000035C  DC 25 00000000 R		FSUB X1
+ 00000362  D8 C9			FMUL ST(0), ST(1)
+ 00000364  DC 05 00000048 R		FADD TX
+ 0000036A  DD 1D 00000048 R		FSTP TX
+
+
+ 00000370  DD 05 00000008 R		FLD Y1												;Calcular la coordenada Y del punto de tangencia
+ 00000376  DC 05 00000020 R		FADD Y2												;TY = (Y1 + Y2)/2
+ 0000037C  DC 35 00000088 R		FDIV Two
+ 00000382  DD 1D 00000050 R		FSTP TY
+
+ 00000388  DD 05 00000028 R		FLD R2												;TY = TY + (Y2-Y1)*(R1^2-R2^2)/(2*DistC^2)
+ 0000038E  DC 0D 00000028 R		FMUL R2
+ 00000394  DD 05 00000010 R		FLD R1
+ 0000039A  DC 0D 00000010 R		FMUL R1
+ 000003A0  D8 E1			FSUB ST(0), ST(1)
+ 000003A2  DC 35 00000088 R		FDIV Two
+ 000003A8  DC 35 00000040 R		FDIV DistC
+ 000003AE  DC 35 00000040 R		FDIV DistC
+ 000003B4  DD 05 00000020 R		FLD Y2
+ 000003BA  DC 25 00000008 R		FSUB Y1
+ 000003C0  D8 C9			FMUL ST(0), ST(1)
+ 000003C2  DC 05 00000050 R		FADD TY
+ 000003C8  DD 1D 00000050 R		FSTP TY
+
+
+					MWRITE "El resultado de la clasificacion de la relacion entre las circuenferencias es que estas son tangentes exteriormente y su punto de interseccion es:"
+ 000005BF		     1		.data		
+ 000005BF 45 6C 20 72 65     1		??0011 BYTE "El resultado de la clasificacion de la relacion entre las circuenferencias es que estas son tangentes exteriormente y su punto de interseccion es:",0	
+	   73 75 6C 74 61
+	   64 6F 20 64 65
+	   20 6C 61 20 63
+	   6C 61 73 69 66
+	   69 63 61 63 69
+	   6F 6E 20 64 65
+	   20 6C 61 20 72
+	   65 6C 61 63 69
+	   6F 6E 20 65 6E
+	   74 72 65 20 6C
+	   61 73 20 63 69
+	   72 63 75 65 6E
+	   66 65 72 65 6E
+	   63 69 61 73 20
+	   65 73 20 71 75
+	   65 20 65 73 74
+	   61 73 20 73 6F
+	   6E 20 74 61 6E
+	   67 65 6E 74 65
+	   73 20 65 78 74
+	   65 72 69 6F 72
+	   6D 65 6E 74 65
+	   20 79 20 73 75
+	   20 70 75 6E 74
+	   6F 20 64 65 20
+	   69 6E 74 65 72
+	   73 65 63 63 69
+	   6F 6E 20 65 73
+	   3A 00
+ 000003CE		     1		.code
+ 000003CE  52		     1		push	edx
+ 000003CF  BA 000005BF R     1		mov	edx,OFFSET ??0011
+ 000003D4  E8 00000000 E     1		call	WriteString
+ 000003D9  5A		     1		pop	edx
+					MWRITE "( "
+ 00000652		     1		.data		
+ 00000652 28 20 00	     1		??0012 BYTE "( ",0	
+ 000003DA		     1		.code
+ 000003DA  52		     1		push	edx
+ 000003DB  BA 00000652 R     1		mov	edx,OFFSET ??0012
+ 000003E0  E8 00000000 E     1		call	WriteString
+ 000003E5  5A		     1		pop	edx
+ 000003E6  DD 05 00000048 R		FLD TX
+ 000003EC  E8 00000000 E		CALL WRITEFLOAT
+ 000003F1  9B DB E3			FINIT
+					MWRITE " , "
+ 00000655		     1		.data		
+ 00000655 20 2C 20 00	     1		??0013 BYTE " , ",0	
+ 000003F4		     1		.code
+ 000003F4  52		     1		push	edx
+ 000003F5  BA 00000655 R     1		mov	edx,OFFSET ??0013
+ 000003FA  E8 00000000 E     1		call	WriteString
+ 000003FF  5A		     1		pop	edx
+ 00000400  DD 05 00000050 R		FLD TY
+ 00000406  E8 00000000 E		CALL WRITEFLOAT
+					MWRITE " )"
+ 00000659		     1		.data		
+ 00000659 20 29 00	     1		??0014 BYTE " )",0	
+ 0000040B		     1		.code
+ 0000040B  52		     1		push	edx
+ 0000040C  BA 00000659 R     1		mov	edx,OFFSET ??0014
+ 00000411  E8 00000000 E     1		call	WriteString
+ 00000416  5A		     1		pop	edx
+ 00000417  E8 00000000 E		CALL CRLF
+ 0000041C  E9 00000270			JMP final
+
+
+
+ 00000421			excentricas:                                           ;La relacion al ser clasificada como excentricas, imprimira el resultado y luego saltara al final del programa
+
+					MWRITE "El resultado de la clasificacion de la relacion entre las circuenferencias es que estas son interiores excentricas"							
+ 0000065C		     1		.data		
+ 0000065C 45 6C 20 72 65     1		??0015 BYTE "El resultado de la clasificacion de la relacion entre las circuenferencias es que estas son interiores excentricas",0	
+	   73 75 6C 74 61
+	   64 6F 20 64 65
+	   20 6C 61 20 63
+	   6C 61 73 69 66
+	   69 63 61 63 69
+	   6F 6E 20 64 65
+	   20 6C 61 20 72
+	   65 6C 61 63 69
+	   6F 6E 20 65 6E
+	   74 72 65 20 6C
+	   61 73 20 63 69
+	   72 63 75 65 6E
+	   66 65 72 65 6E
+	   63 69 61 73 20
+	   65 73 20 71 75
+	   65 20 65 73 74
+	   61 73 20 73 6F
+	   6E 20 69 6E 74
+	   65 72 69 6F 72
+	   65 73 20 65 78
+	   63 65 6E 74 72
+	   69 63 61 73 00
+ 00000421		     1		.code
+ 00000421  52		     1		push	edx
+ 00000422  BA 0000065C R     1		mov	edx,OFFSET ??0015
+ 00000427  E8 00000000 E     1		call	WriteString
+ 0000042C  5A		     1		pop	edx
+ 0000042D  E8 00000000 E		CALL CRLF
+ 00000432  E9 0000025A			JMP final
+
+
+
+ 00000437			secantes:												;La relacion al ser clasificada como secantes, calculara los puntos de tangencia, imprimira el resultado y luego saltara al final del programa
+ 00000437  9B DB E3			FINIT
+					
+ 0000043A  DD 05 00000000 R		FLD X1												;Calcular la coordenada X del punto de tangencia
+ 00000440  DC 05 00000018 R		FADD X2												;TX = (X1 + X2)/2
+ 00000446  DC 35 00000088 R		FDIV Two
+ 0000044C  DD 1D 00000048 R		FSTP TX
+
+ 00000452  DD 05 00000028 R		FLD R2												;TX = (R1^2-R2^2)/(2*DistC^2)*(X2-X1) + TX
+ 00000458  DC 0D 00000028 R		FMUL R2
+ 0000045E  DD 05 00000010 R		FLD R1
+ 00000464  DC 0D 00000010 R		FMUL R1
+ 0000046A  D8 E1			FSUB ST(0), ST(1)
+ 0000046C  DC 35 00000088 R		FDIV Two
+ 00000472  DC 35 00000040 R		FDIV DistC
+ 00000478  DC 35 00000040 R		FDIV DistC
+ 0000047E  DD 05 00000018 R		FLD X2
+ 00000484  DC 25 00000000 R		FSUB X1
+ 0000048A  D8 C9			FMUL ST(0), ST(1)
+ 0000048C  DC 05 00000048 R		FADD TX
+ 00000492  DD 1D 00000048 R		FSTP TX
+
+
+ 00000498  DD 05 00000008 R		FLD Y1												;Calcular la coordenada Y del punto de tangencia
+ 0000049E  DC 05 00000020 R		FADD Y2												;TY = (Y1 + Y2)/2
+ 000004A4  DC 35 00000088 R		FDIV Two
+ 000004AA  DD 1D 00000050 R		FSTP TY
+
+ 000004B0  DD 05 00000028 R		FLD R2												;TY = (R1^2-R2^2)/(2*DistC^2)*(Y2-Y1) + TY
+ 000004B6  DC 0D 00000028 R		FMUL R2
+ 000004BC  DD 05 00000010 R		FLD R1
+ 000004C2  DC 0D 00000010 R		FMUL R1
+ 000004C8  D8 E1			FSUB ST(0), ST(1)
+ 000004CA  DC 35 00000088 R		FDIV Two
+ 000004D0  DC 35 00000040 R		FDIV DistC
+ 000004D6  DC 35 00000040 R		FDIV DistC
+ 000004DC  DD 05 00000020 R		FLD Y2
+ 000004E2  DC 25 00000008 R		FSUB Y1
+ 000004E8  D8 C9			FMUL ST(0), ST(1)
+ 000004EA  DC 05 00000050 R		FADD TY
+ 000004F0  DD 1D 00000050 R		FSTP TY
+																		;Se calcula la constante que sera de ayuda para encontrar los puntos, se le llama "SecanteAux"
+
+ 000004F6  DD 05 00000028 R		FLD R2												;SecanteAux = (R1^2-R2^2)^2/(DistC^4) - 1
+ 000004FC  DC 0D 00000028 R		FMUL R2
+ 00000502  DD 05 00000010 R		FLD R1
+ 00000508  DC 0D 00000010 R		FMUL R1
+ 0000050E  D8 E1			FSUB ST(0), ST(1)
+ 00000510  DD 15 00000058 R		FST Aux
+ 00000516  DC 0D 00000058 R		FMUL Aux
+ 0000051C  DC 35 00000040 R		FDIV DistC
+ 00000522  DC 35 00000040 R		FDIV DistC
+ 00000528  DC 35 00000040 R		FDIV DistC
+ 0000052E  DC 35 00000040 R		FDIV DistC
+ 00000534  DC 05 00000080 R		FADD One
+ 0000053A  DD 1D 00000058 R		FSTP Aux
+					
+ 00000540  DD 05 00000010 R		FLD R1												;SecanteAux = ((2*(R1^2 + R2^2)/DistC^2 - SecanteAux)^0.5)/2
+ 00000546  DC 0D 00000010 R		FMUL R1
+ 0000054C  DD 05 00000028 R		FLD R2
+ 00000552  DC 0D 00000028 R		FMUL R2
+ 00000558  D8 C1			FADD ST(0), ST(1)
+ 0000055A  DC 0D 00000088 R		FMUL Two
+ 00000560  DC 35 00000040 R		FDIV DistC
+ 00000566  DC 35 00000040 R		FDIV DistC
+ 0000056C  DC 25 00000058 R		FSUB Aux
+ 00000572  D9 FA			FSQRT
+ 00000574  DC 35 00000088 R		FDIV Two
+ 0000057A  DD 1D 00000058 R		FSTP Aux
+
+					
+
+ 00000580  DD 05 00000020 R		FLD Y2												;TX1 = (Y2-Y1)*-1*SecanteAux + TX
+ 00000586  DC 25 00000008 R		FSUB Y1
+ 0000058C  DC 0D 00000058 R		FMUL Aux
+ 00000592  DC 0D 00000070 R		FMUL MOne
+ 00000598  DC 05 00000048 R		FADD TX
+ 0000059E  DD 1D 00000060 R		FSTP TX1
+
+ 000005A4  DD 05 00000000 R		FLD X1												;TY1 = (X1-X2)*-1*SecanteAux + TY
+ 000005AA  DC 25 00000018 R		FSUB X2
+ 000005B0  DC 0D 00000058 R		FMUL Aux
+ 000005B6  DC 0D 00000070 R		FMUL MOne
+ 000005BC  DC 05 00000050 R		FADD TY
+ 000005C2  DD 1D 00000068 R		FSTP TY1
+
+ 000005C8  DD 05 00000020 R		FLD Y2												;TX = (Y2-Y1)*SecanteAux + TX
+ 000005CE  DC 25 00000008 R		FSUB Y1
+ 000005D4  DC 0D 00000058 R		FMUL Aux
+ 000005DA  DC 05 00000048 R		FADD TX
+ 000005E0  DD 1D 00000048 R		FSTP TX 
+
+ 000005E6  DD 05 00000000 R		FLD X1												;TY = (X1-X2)*SecanteAux + TY
+ 000005EC  DC 25 00000018 R		FSUB X2
+ 000005F2  DC 0D 00000058 R		FMUL Aux
+ 000005F8  DC 05 00000050 R		FADD TY
+ 000005FE  DD 1D 00000050 R		FSTP TY
+
+
+																			
+					MWRITE "La relacion entre las dos circunferencias es de secantes y sus puntos de interseccion son:"
+ 000006CF		     1		.data		
+ 000006CF 4C 61 20 72 65     1		??0016 BYTE "La relacion entre las dos circunferencias es de secantes y sus puntos de interseccion son:",0	
+	   6C 61 63 69 6F
+	   6E 20 65 6E 74
+	   72 65 20 6C 61
+	   73 20 64 6F 73
+	   20 63 69 72 63
+	   75 6E 66 65 72
+	   65 6E 63 69 61
+	   73 20 65 73 20
+	   64 65 20 73 65
+	   63 61 6E 74 65
+	   73 20 79 20 73
+	   75 73 20 70 75
+	   6E 74 6F 73 20
+	   64 65 20 69 6E
+	   74 65 72 73 65
+	   63 63 69 6F 6E
+	   20 73 6F 6E 3A
+	   00
+ 00000604		     1		.code
+ 00000604  52		     1		push	edx
+ 00000605  BA 000006CF R     1		mov	edx,OFFSET ??0016
+ 0000060A  E8 00000000 E     1		call	WriteString
+ 0000060F  5A		     1		pop	edx
+					
+					MWRITE " ( "
+ 0000072A		     1		.data		
+ 0000072A 20 28 20 00	     1		??0017 BYTE " ( ",0	
+ 00000610		     1		.code
+ 00000610  52		     1		push	edx
+ 00000611  BA 0000072A R     1		mov	edx,OFFSET ??0017
+ 00000616  E8 00000000 E     1		call	WriteString
+ 0000061B  5A		     1		pop	edx
+ 0000061C  DD 05 00000048 R		FLD TX
+ 00000622  E8 00000000 E		CALL WRITEFLOAT
+ 00000627  9B DB E3			FINIT
+					MWRITE " , "
+ 0000072E		     1		.data		
+ 0000072E 20 2C 20 00	     1		??0018 BYTE " , ",0	
+ 0000062A		     1		.code
+ 0000062A  52		     1		push	edx
+ 0000062B  BA 0000072E R     1		mov	edx,OFFSET ??0018
+ 00000630  E8 00000000 E     1		call	WriteString
+ 00000635  5A		     1		pop	edx
+ 00000636  DD 05 00000050 R		FLD TY
+ 0000063C  E8 00000000 E		CALL WRITEFLOAT
+					MWRITE " )   y  ( "
+ 00000732		     1		.data		
+ 00000732 20 29 20 20 20     1		??0019 BYTE " )   y  ( ",0	
+	   79 20 20 28 20
+	   00
+ 00000641		     1		.code
+ 00000641  52		     1		push	edx
+ 00000642  BA 00000732 R     1		mov	edx,OFFSET ??0019
+ 00000647  E8 00000000 E     1		call	WriteString
+ 0000064C  5A		     1		pop	edx
+ 0000064D  9B DB E3			FINIT
+ 00000650  DD 05 00000060 R		FLD TX1
+ 00000656  E8 00000000 E		CALL WRITEFLOAT
+ 0000065B  9B DB E3			FINIT
+					MWRITE " , "
+ 0000073D		     1		.data		
+ 0000073D 20 2C 20 00	     1		??001A BYTE " , ",0	
+ 0000065E		     1		.code
+ 0000065E  52		     1		push	edx
+ 0000065F  BA 0000073D R     1		mov	edx,OFFSET ??001A
+ 00000664  E8 00000000 E     1		call	WriteString
+ 00000669  5A		     1		pop	edx
+ 0000066A  DD 05 00000068 R		FLD TY1
+ 00000670  E8 00000000 E		CALL WRITEFLOAT
+					MWRITE " )."
+ 00000741		     1		.data		
+ 00000741 20 29 2E 00	     1		??001B BYTE " ).",0	
+ 00000675		     1		.code
+ 00000675  52		     1		push	edx
+ 00000676  BA 00000741 R     1		mov	edx,OFFSET ??001B
+ 0000067B  E8 00000000 E     1		call	WriteString
+ 00000680  5A		     1		pop	edx
+					
+ 00000681  EB 0E			JMP final
+
+ 00000683			exteriores:												;La relacion al ser clasificada como exteriores, imprimira el resultado y luego saltara al final del programa
+					MWRITE "La relacion entre las dos circunferencias es de exteriores."
+ 00000745		     1		.data		
+ 00000745 4C 61 20 72 65     1		??001C BYTE "La relacion entre las dos circunferencias es de exteriores.",0	
+	   6C 61 63 69 6F
+	   6E 20 65 6E 74
+	   72 65 20 6C 61
+	   73 20 64 6F 73
+	   20 63 69 72 63
+	   75 6E 66 65 72
+	   65 6E 63 69 61
+	   73 20 65 73 20
+	   64 65 20 65 78
+	   74 65 72 69 6F
+	   72 65 73 2E 00
+ 00000683		     1		.code
+ 00000683  52		     1		push	edx
+ 00000684  BA 00000745 R     1		mov	edx,OFFSET ??001C
+ 00000689  E8 00000000 E     1		call	WriteString
+ 0000068E  5A		     1		pop	edx
+ 0000068F  EB 00			JMP final
+
+
+
+ 00000691			final:
+
+ 00000691  DD 05 00000078 R		FLD Zero                                            ;Se le asigna un valor de 0 a todas las variables antes de hacer una nueva consulta
+ 00000697  DD 15 00000030 R		FST DeltaX
+ 0000069D  DD 15 00000038 R		FST DeltaY
+ 000006A3  DD 15 00000040 R		FST DistC
+ 000006A9  DD 15 00000048 R		FST TX
+ 000006AF  DD 15 00000050 R		FST TY
+ 000006B5  DD 15 00000058 R		FST Aux
+ 000006BB  DD 15 00000060 R		FST TX1
+ 000006C1  DD 15 00000090 R		FST Bool
+ 000006C7  DD 1D 00000068 R		FSTP TY1
+
+
+ 000006CD  E8 00000000 E		CALL CRLF                                                ;Secuencia de finalizacion en donde se le preguntara al usuario si desea volver a hacer uso del programa o desea finalizar la ejecucion del mismo
+					MWRITE <"Ingrese [1] si desea validar la relacion entre otros dos circulos; de lo contrario ingrese [0]">
+ 00000781		     1		.data		
+ 00000781 49 6E 67 72 65     1		??001D BYTE "Ingrese [1] si desea validar la relacion entre otros dos circulos; de lo contrario ingrese [0]",0	
+	   73 65 20 5B 31
+	   5D 20 73 69 20
+	   64 65 73 65 61
+	   20 76 61 6C 69
+	   64 61 72 20 6C
+	   61 20 72 65 6C
+	   61 63 69 6F 6E
+	   20 65 6E 74 72
+	   65 20 6F 74 72
+	   6F 73 20 64 6F
+	   73 20 63 69 72
+	   63 75 6C 6F 73
+	   3B 20 64 65 20
+	   6C 6F 20 63 6F
+	   6E 74 72 61 72
+	   69 6F 20 69 6E
+	   67 72 65 73 65
+	   20 5B 30 5D 00
+ 000006D2		     1		.code
+ 000006D2  52		     1		push	edx
+ 000006D3  BA 00000781 R     1		mov	edx,OFFSET ??001D
+ 000006D8  E8 00000000 E     1		call	WriteString
+ 000006DD  5A		     1		pop	edx
+ 000006DE  E8 00000000 E		CALL READFLOAT
+ 000006E3  DD 15 00000090 R		FST Bool
+ 000006E9  E8 00000000 E		CALL CRLF
+ 000006EE  DD 05 00000078 R		FLD Zero
+ 000006F4  DB F1			FCOMI st(0), st(1)
+ 000006F6  0F 85 FFFFF946			JNE inicio
+
+					MWRITE <"Gracias por usar el programa, esperamos que te haya servido.">
+ 000007E0		     1		.data		
+ 000007E0 47 72 61 63 69     1		??001E BYTE "Gracias por usar el programa, esperamos que te haya servido.",0	
+	   61 73 20 70 6F
+	   72 20 75 73 61
+	   72 20 65 6C 20
+	   70 72 6F 67 72
+	   61 6D 61 2C 20
+	   65 73 70 65 72
+	   61 6D 6F 73 20
+	   71 75 65 20 74
+	   65 20 68 61 79
+	   61 20 73 65 72
+	   76 69 64 6F 2E
+	   00
+ 000006FC		     1		.code
+ 000006FC  52		     1		push	edx
+ 000006FD  BA 000007E0 R     1		mov	edx,OFFSET ??001E
+ 00000702  E8 00000000 E     1		call	WriteString
+ 00000707  5A		     1		pop	edx
+
+					exit
+ 00000708  6A 00	   *	    push   +000000000h
+ 0000070A  E8 00000000 E   *	    call   ExitProcess
+ 0000070F			main ENDP
+				END main
+Microsoft (R) Macro Assembler Version 14.29.30133.0	    08/26/21 12:38:40
+Proyecti        (Proyecto.asm				     Symbols 2 - 1
+
+
+
+
+Macros:
+
+                N a m e                 Type
+
+IsDefined  . . . . . . . . . . .	Func
+Startup  . . . . . . . . . . . .	Proc
+mDumpMem . . . . . . . . . . . .	Proc
+mDump  . . . . . . . . . . . . .	Proc
+mGotoxy  . . . . . . . . . . . .	Proc
+mReadString  . . . . . . . . . .	Proc
+mShowRegister  . . . . . . . . .	Proc
+mShow  . . . . . . . . . . . . .	Proc
+mWriteLn . . . . . . . . . . . .	Proc
+mWriteSpace  . . . . . . . . . .	Proc
+mWriteString . . . . . . . . . .	Proc
+mWrite . . . . . . . . . . . . .	Proc
+
+
+Structures and Unions:
+
+                N a m e                  Size
+                                         Offset      Type
+
+CONSOLE_CURSOR_INFO  . . . . . .	 00000008
+  dwSize . . . . . . . . . . . .	 00000000	 DWord
+  bVisible . . . . . . . . . . .	 00000004	 DWord
+CONSOLE_SCREEN_BUFFER_INFO . . .	 00000016
+  dwSize . . . . . . . . . . . .	 00000000	 DWord
+  dwCursorPosition . . . . . . .	 00000004	 DWord
+  wAttributes  . . . . . . . . .	 00000008	 Word
+  srWindow . . . . . . . . . . .	 0000000A	 QWord
+  dwMaximumWindowSize  . . . . .	 00000012	 DWord
+COORD  . . . . . . . . . . . . .	 00000004
+  X  . . . . . . . . . . . . . .	 00000000	 Word
+  Y  . . . . . . . . . . . . . .	 00000002	 Word
+FILETIME . . . . . . . . . . . .	 00000008
+  loDateTime . . . . . . . . . .	 00000000	 DWord
+  hiDateTime . . . . . . . . . .	 00000004	 DWord
+FOCUS_EVENT_RECORD . . . . . . .	 00000004
+  bSetFocus  . . . . . . . . . .	 00000000	 DWord
+FPU_ENVIRON  . . . . . . . . . .	 0000001C
+  controlWord  . . . . . . . . .	 00000000	 Word
+  statusWord . . . . . . . . . .	 00000004	 Word
+  tagWord  . . . . . . . . . . .	 00000008	 Word
+  instrPointerOffset . . . . . .	 0000000C	 DWord
+  instrPointerSelector . . . . .	 00000010	 DWord
+  operandPointerOffset . . . . .	 00000014	 DWord
+  operandPointerSelector . . . .	 00000018	 Word
+INPUT_RECORD . . . . . . . . . .	 00000014
+  EventType  . . . . . . . . . .	 00000000	 Word
+  Event  . . . . . . . . . . . .	 00000004	 XmmWord
+  bKeyDown . . . . . . . . . . .	 00000000	 DWord
+  wRepeatCount . . . . . . . . .	 00000004	 Word
+  wVirtualKeyCode  . . . . . . .	 00000006	 Word
+  wVirtualScanCode . . . . . . .	 00000008	 Word
+  uChar  . . . . . . . . . . . .	 0000000A	 Word
+  UnicodeChar  . . . . . . . . .	 00000000	 Word
+  AsciiChar  . . . . . . . . . .	 00000000	 Byte
+  dwControlKeyState  . . . . . .	 0000000C	 DWord
+  dwMousePosition  . . . . . . .	 00000000	 DWord
+  dwButtonState  . . . . . . . .	 00000004	 DWord
+  dwMouseControlKeyState . . . .	 00000008	 DWord
+  dwEventFlags . . . . . . . . .	 0000000C	 DWord
+  dwSize . . . . . . . . . . . .	 00000000	 DWord
+  dwCommandId  . . . . . . . . .	 00000000	 DWord
+  bSetFocus  . . . . . . . . . .	 00000000	 DWord
+KEY_EVENT_RECORD . . . . . . . .	 00000010
+  bKeyDown . . . . . . . . . . .	 00000000	 DWord
+  wRepeatCount . . . . . . . . .	 00000004	 Word
+  wVirtualKeyCode  . . . . . . .	 00000006	 Word
+  wVirtualScanCode . . . . . . .	 00000008	 Word
+  uChar  . . . . . . . . . . . .	 0000000A	 Word
+  UnicodeChar  . . . . . . . . .	 00000000	 Word
+  AsciiChar  . . . . . . . . . .	 00000000	 Byte
+  dwControlKeyState  . . . . . .	 0000000C	 DWord
+MENU_EVENT_RECORD  . . . . . . .	 00000004
+  dwCommandId  . . . . . . . . .	 00000000	 DWord
+MOUSE_EVENT_RECORD . . . . . . .	 00000010
+  dwMousePosition  . . . . . . .	 00000000	 DWord
+  dwButtonState  . . . . . . . .	 00000004	 DWord
+  dwMouseControlKeyState . . . .	 00000008	 DWord
+  dwEventFlags . . . . . . . . .	 0000000C	 DWord
+SMALL_RECT . . . . . . . . . . .	 00000008
+  Left . . . . . . . . . . . . .	 00000000	 Word
+  Top  . . . . . . . . . . . . .	 00000002	 Word
+  Right  . . . . . . . . . . . .	 00000004	 Word
+  Bottom . . . . . . . . . . . .	 00000006	 Word
+SYSTEMTIME . . . . . . . . . . .	 00000010
+  wYear  . . . . . . . . . . . .	 00000000	 Word
+  wMonth . . . . . . . . . . . .	 00000002	 Word
+  wDayOfWeek . . . . . . . . . .	 00000004	 Word
+  wDay . . . . . . . . . . . . .	 00000006	 Word
+  wHour  . . . . . . . . . . . .	 00000008	 Word
+  wMinute  . . . . . . . . . . .	 0000000A	 Word
+  wSecond  . . . . . . . . . . .	 0000000C	 Word
+  wMilliseconds  . . . . . . . .	 0000000E	 Word
+WINDOW_BUFFER_SIZE_RECORD  . . .	 00000004
+  dwSize . . . . . . . . . . . .	 00000000	 DWord
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+FLAT . . . . . . . . . . . . . .	GROUP
+STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
+_DATA  . . . . . . . . . . . . .	32 Bit	 0000081D Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000070F Para	  Public  'CODE'	
+
+
+Procedures, parameters, and locals:
+
+                N a m e                 Type     Value    Attr
+
+CloseFile  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+CloseHandle  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Clrscr . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+CreateFileA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ExitProcess  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+FileTimeToDosDateTime  . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+FileTimeToSystemTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+FlushConsoleInputBuffer  . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+FormatMessageA . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetCommandLineA  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetCommandTail . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetConsoleCP . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetConsoleCursorInfo . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetConsoleMode . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetConsoleScreenBufferInfo . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetDateTime  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetFileTime  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetKeyState  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetLastError . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetLocalTime . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetMaxXY . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetMseconds  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetNumberOfConsoleInputEvents  .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetProcessHeap . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetStdHandle . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetSystemTime  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetTextColor . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetTickCount . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Gotoxy . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+HeapAlloc  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+HeapCreate . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+HeapDestroy  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+HeapFree . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+HeapSize . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+IsDigit  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+LocalFree  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+MessageBoxA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+MsgBoxAsk  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+MsgBox . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+OpenInputFile  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ParseDecimal32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ParseInteger32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+PeekConsoleInputA  . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Random32 . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+RandomRange  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Randomize  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadChar . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadConsoleA . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadConsoleInputA  . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadDec  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadFile . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadFloat  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadFromFile . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadHex  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadInt  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadKeyFlush . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadKey  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadString . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetConsoleCursorInfo . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetConsoleCursorPosition . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetConsoleMode . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetConsoleScreenBufferSize . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetConsoleTextAttribute  . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetConsoleTitleA . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetConsoleWindowInfo . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetFilePointer . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetLocalTime . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SetTextColor . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ShowFPUStack . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Sleep  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+StrLength  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Str_compare  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Str_copy . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Str_length . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Str_trim . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Str_ucase  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SystemTimeToFileTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WaitMsg  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteBinB  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteBin . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteChar  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteConsoleA  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteConsoleOutputAttribute  . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteConsoleOutputCharacterA . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteDec . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteFile  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteFloat . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteHexB  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteHex . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteInt . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteStackFrameName  . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000070F Public STDCALL
+  inicio . . . . . . . . . . . .	L Near	 00000042 _TEXT	
+  criterio1  . . . . . . . . . .	L Near	 00000148 _TEXT	
+  coincidentes . . . . . . . . .	L Near	 0000016A _TEXT	
+  concentricas . . . . . . . . .	L Near	 00000180 _TEXT	
+  criterio2  . . . . . . . . . .	L Near	 00000196 _TEXT	
+  tanInteriores  . . . . . . . .	L Near	 00000203 _TEXT	
+  tanExteriores  . . . . . . . .	L Near	 00000312 _TEXT	
+  excentricas  . . . . . . . . .	L Near	 00000421 _TEXT	
+  secantes . . . . . . . . . . .	L Near	 00000437 _TEXT	
+  exteriores . . . . . . . . . .	L Near	 00000683 _TEXT	
+  final  . . . . . . . . . . . .	L Near	 00000691 _TEXT	
+printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
+scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
+wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+??0000 . . . . . . . . . . . . .	Byte	 00000098 _DATA	
+??0001 . . . . . . . . . . . . .	Byte	 00000137 _DATA	
+??0002 . . . . . . . . . . . . .	Byte	 000001DE _DATA	
+??0003 . . . . . . . . . . . . .	Byte	 0000027F _DATA	
+??0004 . . . . . . . . . . . . .	Byte	 00000302 _DATA	
+??0005 . . . . . . . . . . . . .	Byte	 00000345 _DATA	
+??0006 . . . . . . . . . . . . .	Byte	 00000377 _DATA	
+??0007 . . . . . . . . . . . . .	Byte	 000003A9 _DATA	
+??0008 . . . . . . . . . . . . .	Byte	 000003C9 _DATA	
+??0009 . . . . . . . . . . . . .	Byte	 000003FC _DATA	
+??000A . . . . . . . . . . . . .	Byte	 0000042F _DATA	
+??000B . . . . . . . . . . . . .	Byte	 00000450 _DATA	
+??000C . . . . . . . . . . . . .	Byte	 000004B9 _DATA	
+??000D . . . . . . . . . . . . .	Byte	 00000522 _DATA	
+??000E . . . . . . . . . . . . .	Byte	 000005B5 _DATA	
+??000F . . . . . . . . . . . . .	Byte	 000005B8 _DATA	
+??0010 . . . . . . . . . . . . .	Byte	 000005BC _DATA	
+??0011 . . . . . . . . . . . . .	Byte	 000005BF _DATA	
+??0012 . . . . . . . . . . . . .	Byte	 00000652 _DATA	
+??0013 . . . . . . . . . . . . .	Byte	 00000655 _DATA	
+??0014 . . . . . . . . . . . . .	Byte	 00000659 _DATA	
+??0015 . . . . . . . . . . . . .	Byte	 0000065C _DATA	
+??0016 . . . . . . . . . . . . .	Byte	 000006CF _DATA	
+??0017 . . . . . . . . . . . . .	Byte	 0000072A _DATA	
+??0018 . . . . . . . . . . . . .	Byte	 0000072E _DATA	
+??0019 . . . . . . . . . . . . .	Byte	 00000732 _DATA	
+??001A . . . . . . . . . . . . .	Byte	 0000073D _DATA	
+??001B . . . . . . . . . . . . .	Byte	 00000741 _DATA	
+??001C . . . . . . . . . . . . .	Byte	 00000745 _DATA	
+??001D . . . . . . . . . . . . .	Byte	 00000781 _DATA	
+??001E . . . . . . . . . . . . .	Byte	 000007E0 _DATA	
+@CodeSize  . . . . . . . . . . .	Number	 00000000h   
+@DataSize  . . . . . . . . . . .	Number	 00000000h   
+@Interface . . . . . . . . . . .	Number	 00000003h   
+@Model . . . . . . . . . . . . .	Number	 00000007h   
+@code  . . . . . . . . . . . . .	Text   	 _TEXT
+@data  . . . . . . . . . . . . .	Text   	 FLAT
+@fardata?  . . . . . . . . . . .	Text   	 FLAT
+@fardata . . . . . . . . . . . .	Text   	 FLAT
+@stack . . . . . . . . . . . . .	Text   	 FLAT
+ALT_MASK . . . . . . . . . . . .	Number	 00000003h   
+Aux  . . . . . . . . . . . . . .	QWord	 00000058 _DATA	
+Bool . . . . . . . . . . . . . .	QWord	 00000090 _DATA	
+CAPSLOCK_ON  . . . . . . . . . .	Number	 00000080h   
+CREATE_ALWAYS  . . . . . . . . .	Number	 00000002h   
+CREATE_NEW . . . . . . . . . . .	Number	 00000001h   
+CTRL_MASK  . . . . . . . . . . .	Number	 0000000Ch   
+CreateFile . . . . . . . . . . .	Text   	 CreateFileA
+DEltaY . . . . . . . . . . . . .	QWord	 00000038 _DATA	
+DO_NOT_SHARE . . . . . . . . . .	Number	 00000000h   
+DeltaX . . . . . . . . . . . . .	QWord	 00000030 _DATA	
+DistC  . . . . . . . . . . . . .	QWord	 00000040 _DATA	
+ENABLE_ECHO_INPUT  . . . . . . .	Number	 00000004h   
+ENABLE_LINE_INPUT  . . . . . . .	Number	 00000002h   
+ENABLE_MOUSE_INPUT . . . . . . .	Number	 00000010h   
+ENABLE_PROCESSED_INPUT . . . . .	Number	 00000001h   
+ENABLE_PROCESSED_OUTPUT  . . . .	Number	 00000001h   
+ENABLE_WINDOW_INPUT  . . . . . .	Number	 00000008h   
+ENABLE_WRAP_AT_EOL_OUTPUT  . . .	Number	 00000002h   
+ENHANCED_KEY . . . . . . . . . .	Number	 00000100h   
+FALSE  . . . . . . . . . . . . .	Number	 00000000h   
+FILE_APPEND_DATA . . . . . . . .	Number	 00000004h   
+FILE_ATTRIBUTE_ARCHIVE . . . . .	Number	 00000020h   
+FILE_ATTRIBUTE_COMPRESSED  . . .	Number	 00000800h   
+FILE_ATTRIBUTE_DEVICE  . . . . .	Number	 00000040h   
+FILE_ATTRIBUTE_DIRECTORY . . . .	Number	 00000010h   
+FILE_ATTRIBUTE_ENCRYPTED . . . .	Number	 00004000h   
+FILE_ATTRIBUTE_HIDDEN  . . . . .	Number	 00000002h   
+FILE_ATTRIBUTE_NORMAL  . . . . .	Number	 00000080h   
+FILE_ATTRIBUTE_NOT_CONTENT_INDEXED .	Number	 00002000h   
+FILE_ATTRIBUTE_OFFLINE . . . . .	Number	 00001000h   
+FILE_ATTRIBUTE_READONLY  . . . .	Number	 00000001h   
+FILE_ATTRIBUTE_REPARSE_POINT . .	Number	 00000400h   
+FILE_ATTRIBUTE_SPARSE_FILE . . .	Number	 00000200h   
+FILE_ATTRIBUTE_SYSTEM  . . . . .	Number	 00000004h   
+FILE_ATTRIBUTE_TEMPORARY . . . .	Number	 00000100h   
+FILE_BEGIN . . . . . . . . . . .	Number	 00000000h   
+FILE_CURRENT . . . . . . . . . .	Number	 00000001h   
+FILE_DELETE_CHILD  . . . . . . .	Number	 00000040h   
+FILE_END . . . . . . . . . . . .	Number	 00000002h   
+FILE_READ_DATA . . . . . . . . .	Number	 00000001h   
+FILE_SHARE_DELETE  . . . . . . .	Number	 00000004h   
+FILE_SHARE_READ  . . . . . . . .	Number	 00000001h   
+FILE_SHARE_WRITE . . . . . . . .	Number	 00000002h   
+FILE_WRITE_DATA  . . . . . . . .	Number	 00000002h   
+FOCUS_EVENT  . . . . . . . . . .	Number	 00000010h   
+FORMAT_MESSAGE_ALLOCATE_BUFFER .	Number	 00000100h   
+FORMAT_MESSAGE_FROM_SYSTEM . . .	Number	 00001000h   
+FormatMessage  . . . . . . . . .	Text   	 FormatMessageA
+GENERIC_ALL  . . . . . . . . . .	Number	 10000000h   
+GENERIC_EXECUTE  . . . . . . . .	Number	 20000000h   
+GENERIC_READ . . . . . . . . . .	Number	 -80000000h   
+GENERIC_WRITE  . . . . . . . . .	Number	 40000000h   
+GetCommandLine . . . . . . . . .	Text   	 GetCommandLineA
+HANDLE . . . . . . . . . . . . .	Text   	 DWORD
+HEAP_GENERATE_EXCEPTIONS . . . .	Number	 00000004h   
+HEAP_GROWABLE  . . . . . . . . .	Number	 00000002h   
+HEAP_NO_SERIALIZE  . . . . . . .	Number	 00000001h   
+HEAP_REALLOC_IN_PLACE_ONLY . . .	Number	 00000010h   
+HEAP_ZERO_MEMORY . . . . . . . .	Number	 00000008h   
+IDABORT  . . . . . . . . . . . .	Number	 00000003h   
+IDCANCEL . . . . . . . . . . . .	Number	 00000002h   
+IDCLOSE  . . . . . . . . . . . .	Number	 00000008h   
+IDCONTINUE . . . . . . . . . . .	Number	 0000000Bh   
+IDHELP . . . . . . . . . . . . .	Number	 00000009h   
+IDIGNORE . . . . . . . . . . . .	Number	 00000005h   
+IDNO . . . . . . . . . . . . . .	Number	 00000007h   
+IDOK . . . . . . . . . . . . . .	Number	 00000001h   
+IDRETRY  . . . . . . . . . . . .	Number	 00000004h   
+IDTIMEOUT  . . . . . . . . . . .	Number	 00007D00h   
+IDTRYAGAIN . . . . . . . . . . .	Number	 0000000Ah   
+IDYES  . . . . . . . . . . . . .	Number	 00000006h   
+INVALID_HANDLE_VALUE . . . . . .	Number	 -00000001h   
+KBDOWN_FLAG  . . . . . . . . . .	Number	 00000001h   
+KEY_EVENT  . . . . . . . . . . .	Number	 00000001h   
+KEY_MASKS  . . . . . . . . . . .	Number	 0000001Fh   
+LEFT_ALT_PRESSED . . . . . . . .	Number	 00000002h   
+LEFT_CTRL_PRESSED  . . . . . . .	Number	 00000008h   
+MB_ABORTRETRYIGNORE  . . . . . .	Number	 00000002h   
+MB_APPLMODAL . . . . . . . . . .	Number	 00000000h   
+MB_CANCELTRYCONTINUE . . . . . .	Number	 00000006h   
+MB_DEFBUTTON1  . . . . . . . . .	Number	 00000000h   
+MB_DEFBUTTON2  . . . . . . . . .	Number	 00000100h   
+MB_DEFBUTTON3  . . . . . . . . .	Number	 00000200h   
+MB_DEFBUTTON4  . . . . . . . . .	Number	 00000300h   
+MB_HELP  . . . . . . . . . . . .	Number	 00004000h   
+MB_ICONASTERISK  . . . . . . . .	Number	 00000040h   
+MB_ICONERROR . . . . . . . . . .	Number	 00000010h   
+MB_ICONEXCLAMATION . . . . . . .	Number	 00000030h   
+MB_ICONHAND  . . . . . . . . . .	Number	 00000010h   
+MB_ICONINFORMATION . . . . . . .	Number	 00000040h   
+MB_ICONQUESTION  . . . . . . . .	Number	 00000020h   
+MB_ICONSTOP  . . . . . . . . . .	Number	 00000010h   
+MB_ICONWARNING . . . . . . . . .	Number	 00000030h   
+MB_OKCANCEL  . . . . . . . . . .	Number	 00000001h   
+MB_OK  . . . . . . . . . . . . .	Number	 00000000h   
+MB_RETRYCANCEL . . . . . . . . .	Number	 00000005h   
+MB_SYSTEMMODAL . . . . . . . . .	Number	 00001000h   
+MB_TASKMODAL . . . . . . . . . .	Number	 00002000h   
+MB_USERICON  . . . . . . . . . .	Number	 00000080h   
+MB_YESNOCANCEL . . . . . . . . .	Number	 00000003h   
+MB_YESNO . . . . . . . . . . . .	Number	 00000004h   
+MENU_EVENT . . . . . . . . . . .	Number	 00000008h   
+MOUSE_EVENT  . . . . . . . . . .	Number	 00000002h   
+MOne . . . . . . . . . . . . . .	QWord	 00000070 _DATA	
+MessageBox . . . . . . . . . . .	Text   	 MessageBoxA
+NULL . . . . . . . . . . . . . .	Number	 00000000h   
+NUMLOCK_ON . . . . . . . . . . .	Number	 00000020h   
+OPEN_ALWAYS  . . . . . . . . . .	Number	 00000004h   
+OPEN_EXISTING  . . . . . . . . .	Number	 00000003h   
+One  . . . . . . . . . . . . . .	QWord	 00000080 _DATA	
+PeekConsoleInput . . . . . . . .	Text   	 PeekConsoleInputA
+R1 . . . . . . . . . . . . . . .	QWord	 00000010 _DATA	
+R2 . . . . . . . . . . . . . . .	QWord	 00000028 _DATA	
+RIGHT_ALT_PRESSED  . . . . . . .	Number	 00000001h   
+RIGHT_CTRL_PRESSED . . . . . . .	Number	 00000004h   
+ReadConsoleInput . . . . . . . .	Text   	 ReadConsoleInputA
+ReadConsole  . . . . . . . . . .	Text   	 ReadConsoleA
+SCROLLLOCK_ON  . . . . . . . . .	Number	 00000040h   
+SHIFT_MASK . . . . . . . . . . .	Number	 00000010h   
+SHIFT_PRESSED  . . . . . . . . .	Number	 00000010h   
+STD_ERROR_HANDLE . . . . . . . .	Number	 -0000000Ch   
+STD_INPUT_HANDLE . . . . . . . .	Number	 -0000000Ah   
+STD_OUTPUT_HANDLE  . . . . . . .	Number	 -0000000Bh   
+SetConsoleTitle  . . . . . . . .	Text   	 SetConsoleTitleA
+TAB  . . . . . . . . . . . . . .	Number	 00000009h   
+TRUE . . . . . . . . . . . . . .	Number	 00000001h   
+TRUNCATE_EXISTING  . . . . . . .	Number	 00000005h   
+TX1  . . . . . . . . . . . . . .	QWord	 00000060 _DATA	
+TX . . . . . . . . . . . . . . .	QWord	 00000048 _DATA	
+TY1  . . . . . . . . . . . . . .	QWord	 00000068 _DATA	
+TY . . . . . . . . . . . . . . .	QWord	 00000050 _DATA	
+Two  . . . . . . . . . . . . . .	QWord	 00000088 _DATA	
+VK_11  . . . . . . . . . . . . .	Number	 000000BDh   
+VK_12  . . . . . . . . . . . . .	Number	 000000BBh   
+VK_ADD . . . . . . . . . . . . .	Number	 0000006Bh   
+VK_BACK  . . . . . . . . . . . .	Number	 00000008h   
+VK_CANCEL  . . . . . . . . . . .	Number	 00000003h   
+VK_CAPITAL . . . . . . . . . . .	Number	 00000014h   
+VK_CLEAR . . . . . . . . . . . .	Number	 0000000Ch   
+VK_CONTROL . . . . . . . . . . .	Number	 00000011h   
+VK_DECIMAL . . . . . . . . . . .	Number	 0000006Eh   
+VK_DELETE  . . . . . . . . . . .	Number	 0000002Eh   
+VK_DIVIDE  . . . . . . . . . . .	Number	 0000006Fh   
+VK_DOWN  . . . . . . . . . . . .	Number	 00000028h   
+VK_END . . . . . . . . . . . . .	Number	 00000023h   
+VK_ESCAPE  . . . . . . . . . . .	Number	 0000001Bh   
+VK_EXECUTE . . . . . . . . . . .	Number	 0000002Bh   
+VK_F10 . . . . . . . . . . . . .	Number	 00000079h   
+VK_F11 . . . . . . . . . . . . .	Number	 0000007Ah   
+VK_F12 . . . . . . . . . . . . .	Number	 0000007Bh   
+VK_F13 . . . . . . . . . . . . .	Number	 0000007Ch   
+VK_F14 . . . . . . . . . . . . .	Number	 0000007Dh   
+VK_F15 . . . . . . . . . . . . .	Number	 0000007Eh   
+VK_F16 . . . . . . . . . . . . .	Number	 0000007Fh   
+VK_F17 . . . . . . . . . . . . .	Number	 00000080h   
+VK_F18 . . . . . . . . . . . . .	Number	 00000081h   
+VK_F19 . . . . . . . . . . . . .	Number	 00000082h   
+VK_F1  . . . . . . . . . . . . .	Number	 00000070h   
+VK_F20 . . . . . . . . . . . . .	Number	 00000083h   
+VK_F21 . . . . . . . . . . . . .	Number	 00000084h   
+VK_F22 . . . . . . . . . . . . .	Number	 00000085h   
+VK_F23 . . . . . . . . . . . . .	Number	 00000086h   
+VK_F24 . . . . . . . . . . . . .	Number	 00000087h   
+VK_F2  . . . . . . . . . . . . .	Number	 00000071h   
+VK_F3  . . . . . . . . . . . . .	Number	 00000072h   
+VK_F4  . . . . . . . . . . . . .	Number	 00000073h   
+VK_F5  . . . . . . . . . . . . .	Number	 00000074h   
+VK_F6  . . . . . . . . . . . . .	Number	 00000075h   
+VK_F7  . . . . . . . . . . . . .	Number	 00000076h   
+VK_F8  . . . . . . . . . . . . .	Number	 00000077h   
+VK_F9  . . . . . . . . . . . . .	Number	 00000078h   
+VK_HELP  . . . . . . . . . . . .	Number	 0000002Fh   
+VK_HOME  . . . . . . . . . . . .	Number	 00000024h   
+VK_INSERT  . . . . . . . . . . .	Number	 0000002Dh   
+VK_LBUTTON . . . . . . . . . . .	Number	 00000001h   
+VK_LCONTROL  . . . . . . . . . .	Number	 000000A2h   
+VK_LEFT  . . . . . . . . . . . .	Number	 00000025h   
+VK_LMENU . . . . . . . . . . . .	Number	 000000A4h   
+VK_LSHIFT  . . . . . . . . . . .	Number	 000000A0h   
+VK_MENU  . . . . . . . . . . . .	Number	 00000012h   
+VK_MULTIPLY  . . . . . . . . . .	Number	 0000006Ah   
+VK_NEXT  . . . . . . . . . . . .	Number	 00000022h   
+VK_NUMLOCK . . . . . . . . . . .	Number	 00000090h   
+VK_NUMPAD0 . . . . . . . . . . .	Number	 00000060h   
+VK_NUMPAD1 . . . . . . . . . . .	Number	 00000061h   
+VK_NUMPAD2 . . . . . . . . . . .	Number	 00000062h   
+VK_NUMPAD3 . . . . . . . . . . .	Number	 00000063h   
+VK_NUMPAD4 . . . . . . . . . . .	Number	 00000064h   
+VK_NUMPAD5 . . . . . . . . . . .	Number	 00000065h   
+VK_NUMPAD6 . . . . . . . . . . .	Number	 00000066h   
+VK_NUMPAD7 . . . . . . . . . . .	Number	 00000067h   
+VK_NUMPAD8 . . . . . . . . . . .	Number	 00000068h   
+VK_NUMPAD9 . . . . . . . . . . .	Number	 00000069h   
+VK_PAUSE . . . . . . . . . . . .	Number	 00000013h   
+VK_PRINT . . . . . . . . . . . .	Number	 0000002Ah   
+VK_PRIOR . . . . . . . . . . . .	Number	 00000021h   
+VK_RBUTTON . . . . . . . . . . .	Number	 00000002h   
+VK_RCONTROL  . . . . . . . . . .	Number	 000000A3h   
+VK_RETURN  . . . . . . . . . . .	Number	 0000000Dh   
+VK_RIGHT . . . . . . . . . . . .	Number	 00000027h   
+VK_RMENU . . . . . . . . . . . .	Number	 000000A5h   
+VK_RSHIFT  . . . . . . . . . . .	Number	 000000A1h   
+VK_SCROLL  . . . . . . . . . . .	Number	 00000091h   
+VK_SEPARATER . . . . . . . . . .	Number	 0000006Ch   
+VK_SHIFT . . . . . . . . . . . .	Number	 00000010h   
+VK_SNAPSHOT  . . . . . . . . . .	Number	 0000002Ch   
+VK_SPACE . . . . . . . . . . . .	Number	 00000020h   
+VK_SUBTRACT  . . . . . . . . . .	Number	 0000006Dh   
+VK_TAB . . . . . . . . . . . . .	Number	 00000009h   
+VK_UP  . . . . . . . . . . . . .	Number	 00000026h   
+WINDOW_BUFFER_SIZE_EVENT . . . .	Number	 00000004h   
+WriteConsoleOutputCharacter  . .	Text   	 WriteConsoleOutputCharacterA
+WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
+X1 . . . . . . . . . . . . . . .	QWord	 00000000 _DATA	
+X2 . . . . . . . . . . . . . . .	QWord	 00000018 _DATA	
+Y1 . . . . . . . . . . . . . . .	QWord	 00000008 _DATA	
+Y2 . . . . . . . . . . . . . . .	QWord	 00000020 _DATA	
+Zero . . . . . . . . . . . . . .	QWord	 00000078 _DATA	
+black  . . . . . . . . . . . . .	Number	 00000000h   
+blue . . . . . . . . . . . . . .	Number	 00000001h   
+brown  . . . . . . . . . . . . .	Number	 00000006h   
+cyan . . . . . . . . . . . . . .	Number	 00000003h   
+exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
+gray . . . . . . . . . . . . . .	Number	 00000008h   
+green  . . . . . . . . . . . . .	Number	 00000002h   
+lightBlue  . . . . . . . . . . .	Number	 00000009h   
+lightCyan  . . . . . . . . . . .	Number	 0000000Bh   
+lightGray  . . . . . . . . . . .	Number	 00000007h   
+lightGreen . . . . . . . . . . .	Number	 0000000Ah   
+lightMagenta . . . . . . . . . .	Number	 0000000Dh   
+lightRed . . . . . . . . . . . .	Number	 0000000Ch   
+magenta  . . . . . . . . . . . .	Number	 00000005h   
+red  . . . . . . . . . . . . . .	Number	 00000004h   
+white  . . . . . . . . . . . . .	Number	 0000000Fh   
+wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
+yellow . . . . . . . . . . . . .	Number	 0000000Eh   
+
+	   0 Warnings
+	   0 Errors
